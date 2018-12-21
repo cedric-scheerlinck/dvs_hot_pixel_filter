@@ -353,11 +353,14 @@ int main(int argc, char* argv[])
     }
   }
 
+  std::cout << "Message: " << num_messages << " / " << num_messages << std::endl;
+  std::cout << "Computing stats..." << std::endl;
+
   output_bag.close();
   input_bag.close();
 
   // write statistics
-  std::cout << "Topic\t\t# Events\t#Hot pixels\t% Red." << std::endl;
+  std::cout << "Topic\t\t# Events\t#Hot pixels\t% Events discarded" << std::endl;
   for(auto topic : event_count_histogram_for_each_event_topic)
   {
     const std::string topic_name = topic.first;
