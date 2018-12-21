@@ -1,3 +1,5 @@
+#include "dvs_hot_pixel_filter/hot_pixel_filter.h"
+
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
 #include <dvs_msgs/Event.h>
