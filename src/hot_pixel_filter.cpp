@@ -6,6 +6,8 @@
 #include <sensor_msgs/Imu.h>
 #include <unordered_map>
 #include <sstream>
+#include <boost/filesystem.hpp>
+
 // opencv
 // #include <cv_bridge/cv_bridge.h>
 // #include <image_transport/image_transport.h>
@@ -16,6 +18,7 @@
 #define foreach BOOST_FOREACH
 
 constexpr double NUM_STD_DEVS = 4;
+const std::string OUTPUT_FOLDER = "./stats/";
 
 typedef std::unordered_map<std::string, std::vector<dvs_msgs::Event>> topic_events;
 typedef std::unordered_map<std::string, cv::Mat> topic_mats;
@@ -70,16 +73,9 @@ bool contains(T element, std::vector<T> my_vector)
   return false;
 }
 
-void write_histogram_image(const std::string filename_in, const cv::Mat& histogram,
+void write_histogram_image(const std::string filename, const cv::Mat& histogram,
                            const std::vector<cv::Point>& hot_pixels = std::vector<cv::Point>())
 {
-  std::string filename = filename_in;
-  std::replace( filename.begin(), filename.end(), '/', '_'); // replace all '/' to '_'
-  std::replace( filename.begin(), filename.end(), '\\', '_');
-  if (filename[-4] != '.')
-  {
-    filename += ".png";
-  }
   cv::Mat display_image;
   cv::normalize(histogram, display_image, 0, 255, cv::NORM_MINMAX, CV_8UC1);
   cv::applyColorMap(display_image, display_image, cv::COLORMAP_HOT);
@@ -255,8 +251,29 @@ void write_msg(const rosbag::MessageInstance m, topic_points& hot_pixels_topic,
   }
 }
 
+std::string usable_filename(const std::string filename_in)
+{
+  std::string filename = filename_in;
+  std::replace( filename.begin(), filename.end(), '/', '_'); // replace all '/' to '_'
+  std::replace( filename.begin(), filename.end(), '\\', '_'); // replace all '\' to '_'
+  return filename;
+}
+
+void write_hot_pixels(const std::string filename, const std::vector<cv::Point>& hot_pixels)
+{
+  std::ofstream hot_pixels_file;
+  hot_pixels_file.open(filename);
+  // the important part
+  for (const auto& point : hot_pixels)
+  {
+    hot_pixels_file << point.x << ", " << point.y << "\n";
+  }
+  hot_pixels_file.close();
+}
+
 void print_stats(const std::string bag_name, const std::string topic_name,
-                 const cv::Mat& histogram, const std::vector<cv::Point>& hot_pixels)
+                 const cv::Mat& histogram, const std::vector<cv::Point>& hot_pixels,
+                 const bool one_topic)
 {
   cv::Mat histogram_after;
   histogram.copyTo(histogram_after);
@@ -275,9 +292,21 @@ void print_stats(const std::string bag_name, const std::string topic_name,
   std::cout << std::setprecision(4) << topic_name << "\t" << num_events_after <<
       "\t0\t\t" << percent_events_discarded << "\t(after)" << std::endl;
 
-  write_histogram_image("hist_" + bag_name + "_" + topic_name + "_before", histogram);
-  write_histogram_image("hist_" + bag_name + "_" + topic_name + "_after", histogram_after, hot_pixels);
+  std::string dstDir = OUTPUT_FOLDER + bag_name + "/";
+  if (!one_topic)
+  {
+    dstDir += usable_filename(topic_name) + "/";
+  }
+  boost::filesystem::create_directories(dstDir); // create if needed
+  std::string fname_b = dstDir + "hist_before.png";
+  std::string fname_a = dstDir + "hist_after.png";
+  std::string fname_hp = dstDir + "hot_pixels.txt";
+
+  write_histogram_image(fname_b, histogram);
+  write_histogram_image(fname_a, histogram_after, hot_pixels);
+  write_hot_pixels(fname_hp, hot_pixels);
 }
+
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
@@ -360,13 +389,14 @@ int main(int argc, char* argv[])
   input_bag.close();
 
   // write statistics
+  const bool one_topic = event_count_histogram_for_each_event_topic.size() == 1;
   std::cout << "Topic\t\t# Events\t#Hot pixels\t% Events discarded" << std::endl;
   for(auto topic : event_count_histogram_for_each_event_topic)
   {
     const std::string topic_name = topic.first;
     cv::Mat& histogram = topic.second;
     std::vector<cv::Point>& hot_pixels = hot_pixels_for_each_event_topic[topic_name];
-    print_stats(bag_name, topic_name, histogram, hot_pixels);
+    print_stats(bag_name, topic_name, histogram, hot_pixels, one_topic);
   }
 
   return 0;
