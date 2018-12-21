@@ -13,3 +13,9 @@ If no value is given, it will try to automatically detect hot pixels.
 
 A new rosbag will be written, name ```input.bag.filtered```. It is an exact copy of the original bag, except hot pixel events have been removed.
 
+## Event Count Histogram
+
+The package will output a colour coded event count histogram before and after the hot pixels have been removed.
+
+![event_count_histogram](images/hot_pixel_map.png)
+
