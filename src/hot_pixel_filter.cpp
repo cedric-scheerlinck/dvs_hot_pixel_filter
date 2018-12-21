@@ -85,13 +85,15 @@ void write_histogram_image(const std::string filename_in, const cv::Mat& histogr
   cv::applyColorMap(display_image, display_image, cv::COLORMAP_HOT);
   if (!hot_pixels.empty())
   {
-    cv::Vec3b green = cv::Vec3b(0, 255, 0);
+    cv::Vec3b colour = cv::Vec3b(255, 0, 0);
     for (auto point : hot_pixels)
     {
-      display_image.at<cv::Vec3b>(point) = green;
+      display_image.at<cv::Vec3b>(point) = colour;
     }
   }
-  cv::imwrite(filename, display_image);
+  cv::Mat large_image;
+  cv::resize(display_image, large_image, cv::Size(), 3, 3, cv::INTER_NEAREST);
+  cv::imwrite(filename, large_image);
 }
 
 std::string extract_bag_name(const std::string fullname)
