@@ -54,16 +54,31 @@ void write_histogram_image(const std::string filename,
                            const std::vector<cv::Point>& hot_pixels)
 {
   cv::Mat display_image;
-  cv::normalize(histogram, display_image, 0, 255, cv::NORM_MINMAX, CV_8UC1);
-  cv::applyColorMap(display_image, display_image, cv::COLORMAP_HOT);
+
   if (!hot_pixels.empty())
   {
     cv::Vec3b colour = cv::Vec3b(255, 0, 0);
+    cv::Mat local_hist;
+    histogram.copyTo(local_hist);
+    // create mask
+    cv::Mat mask = cv::Mat::zeros(histogram.size(), CV_8UC1);
     for (auto point : hot_pixels)
     {
-      display_image.at<cv::Vec3b>(point) = colour;
+      mask.at<uint8_t>(point) = 1;
     }
+    double max;
+    cv::minMaxLoc(local_hist, nullptr, &max);
+    local_hist.setTo(max, mask);
+    cv::normalize(local_hist, display_image, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+    cv::applyColorMap(display_image, display_image, cv::COLORMAP_HOT);
+    display_image.setTo(colour, mask);
   }
+  else
+  {
+    cv::normalize(histogram, display_image, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+    cv::applyColorMap(display_image, display_image, cv::COLORMAP_HOT);
+  }
+
   cv::Mat large_image;
   cv::resize(display_image, large_image, cv::Size(), 3, 3, cv::INTER_NEAREST);
   cv::imwrite(filename, large_image);
