@@ -21,7 +21,7 @@ bool parse_arguments(int argc, char* argv[],
   if(argc < 2)
   {
     std::cerr << "Not enough arguments" << std::endl;
-    std::cerr << "Usage: rosrun dvs_hot_pixel_filter dvs_hot_pixel_filter path_to_bag.bag num_hot_pixels (optional)";
+    std::cerr << "Usage: rosrun dvs_hot_pixel_filter hot_pixel_filter path_to_bag.bag num_hot_pixels (optional)";
     return false;
   }
 
