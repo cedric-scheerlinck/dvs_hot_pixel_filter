@@ -263,7 +263,11 @@ void write_event_msg(const std::string topic_name,
       events.push_back(e);
     }
   }
+
+  if (events.size() > 0)
+  {
   // Write new event array message to output rosbag
+
   dvs_msgs::EventArray event_array_msg;
   event_array_msg.events = events;
   event_array_msg.width = event_array_ptr->width;
@@ -271,6 +275,7 @@ void write_event_msg(const std::string topic_name,
   event_array_msg.header.stamp = events.back().ts;
 
   output_bag.write(topic_name, event_array_msg.header.stamp, event_array_msg);
+  }
 }
 
 void write_msg(const rosbag::MessageInstance& m,
@@ -283,6 +288,7 @@ void write_msg(const rosbag::MessageInstance& m,
     std::vector<cv::Point>& hot_pixels = hot_pixels_topic[topic_name];
     dvs_msgs::EventArrayConstPtr event_array_ptr = m.instantiate<dvs_msgs::EventArray>();
     write_event_msg(topic_name, event_array_ptr, hot_pixels, output_bag);
+
   }
   else if(m.getDataType() == "sensor_msgs/Image")
   {

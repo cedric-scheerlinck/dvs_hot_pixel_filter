@@ -3,7 +3,7 @@
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
 
-constexpr double NUM_STD_DEVS = 5; // could make input parameter
+constexpr double NUM_STD_DEVS = 5; // should make input parameter
 
 int main(int argc, char* argv[])
 { 
