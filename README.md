@@ -25,6 +25,10 @@ Clone this repository into your catkin workspace:
     cd ~/catkin_ws/src/
     git clone https://github.com/cedric-scheerlinck/dvs_hot_pixel_filter.git
 
+Clone dependencies:
+
+    vcs-import < dvs_hot_pixel_filter/dependencies.yaml
+
 Build
 
     catkin build dvs_hot_pixel_filter
