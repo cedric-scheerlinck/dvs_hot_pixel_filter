@@ -1,20 +1,34 @@
 #include "dvs_hot_pixel_filter/utils.h"
 
+#include <gflags/gflags.h>
+
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
 
-constexpr double NUM_STD_DEVS = 5; // should make input parameter
+constexpr double NUM_STD_DEVS = 5; // default
+
+DEFINE_double(n_std, NUM_STD_DEVS, "Number of standard deviations for hot pixel threshold");
+DEFINE_int32(n_hot_pix, -1, "Number of hot pixels to be removed");
 
 int main(int argc, char* argv[])
 { 
+  google::ParseCommandLineFlags(&argc, &argv, true);
+
   // parse input arguments and setup input and output rosbags
   std::string path_to_input_rosbag;
-  int num_hot_pixels;
 
-  if(!dvs_hot_pixel_filter::utils::parse_arguments(
-      argc, argv, &path_to_input_rosbag, &num_hot_pixels) )
+  if(!dvs_hot_pixel_filter::utils::parse_arguments(argc, argv, &path_to_input_rosbag))
   {
     return -1;
+  }
+
+  if (FLAGS_n_hot_pix == -1)
+  {
+    std::cout << "Number of hot pixels will be determined automatically\n"
+        "by thresholding event_count > " << FLAGS_n_std << " STD (standard deviations)" << std::endl;
+  } else
+  {
+    std::cout << "The " << FLAGS_n_hot_pix << " hottest pixel(s) will be removed" << std::endl;
   }
 
   std::string bag_name = dvs_hot_pixel_filter::utils::extract_bag_name(
@@ -46,7 +60,7 @@ int main(int argc, char* argv[])
       view, histograms_by_topic);
 
   dvs_hot_pixel_filter::utils::detect_hot_pixels(
-      histograms_by_topic, NUM_STD_DEVS, num_hot_pixels, hot_pixels_by_topic);
+      histograms_by_topic, FLAGS_n_std, FLAGS_n_hot_pix, hot_pixels_by_topic);
 
   dvs_hot_pixel_filter::utils::write_all_msgs(
       view, hot_pixels_by_topic, output_bag);

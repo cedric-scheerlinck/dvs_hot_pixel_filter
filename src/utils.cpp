@@ -15,37 +15,20 @@ namespace utils {
 const std::string OUTPUT_FOLDER = "./stats/";
 
 bool parse_arguments(int argc, char* argv[],
-                     std::string* path_to_input_rosbag,
-                     int* num_hot_pixels)
+                     std::string* path_to_input_rosbag)
 {
   if(argc < 2)
   {
-    std::cerr << "Not enough arguments" << std::endl;
-    std::cerr << "Usage: rosrun dvs_hot_pixel_filter hot_pixel_filter path_to_bag.bag num_hot_pixels (optional)";
+    std::cerr << "Error: not enough input arguments.\n"
+        "Usage:\n\trosrun dvs_hot_pixel_filter hot_pixel_filter path_to_bag.bag\n\n"
+        "Additional (optional) command-line flags include:\n"
+        "\t--n_hot_pix=<number_of_hot_pixels>\n"
+        "\t--n_std=<number_of_standard_deviations>" << std::endl;
     return false;
   }
 
   *path_to_input_rosbag = std::string(argv[1]);
   std::cout << "Input bag: " << *path_to_input_rosbag << std::endl;
-
-  if(argc == 3)
-  {
-    try
-    {
-      *num_hot_pixels = std::stoi(argv[2]);
-      std::cout << "Number of hot pixels: " << *num_hot_pixels << std::endl;
-    }
-    catch(std::invalid_argument e)
-    {
-      std::cerr << "Invalid number of hot pixels. Will use default (50 pixels)." << std::endl;
-      *num_hot_pixels = 50;
-    }
-  } else
-  {
-    *num_hot_pixels = -1;
-    std::cout << "Number of hot pixels will be determined automatically" << std::endl;
-  }
-
   return true;
 }
 
@@ -220,12 +203,11 @@ void find_threshold(const cv::Mat& histogram,
                     const double num_std_devs,
                     double& threshold)
 {
-  double mean;
-  double stdDev;
   cv::Scalar mean_Scalar, stdDev_Scalar;
-  cv::meanStdDev(histogram, mean_Scalar, stdDev_Scalar);
-  mean = mean_Scalar[0];
-  stdDev = stdDev_Scalar[0];
+  cv::meanStdDev(histogram, mean_Scalar, stdDev_Scalar, histogram > 0);
+
+  const double mean = mean_Scalar[0];
+  const double stdDev = stdDev_Scalar[0];
   threshold = mean + num_std_devs*stdDev;
 }
 
@@ -236,6 +218,7 @@ void write_all_msgs(rosbag::View& view,
   constexpr int log_every_n_messages = 10000;
   const uint32_t num_messages = view.size();
   uint32_t message_index = 0;
+  std::cout << "Writing..." << std::endl;
   // write the new rosbag without hot pixels by iterating over all messages
   for(rosbag::MessageInstance const m : view)
   {
@@ -248,6 +231,7 @@ void write_all_msgs(rosbag::View& view,
   }
 
   std::cout << "Message: " << num_messages << " / " << num_messages << std::endl;
+  std::cout << "...done!" << std::endl;
 }
 
 void write_event_msg(const std::string topic_name,

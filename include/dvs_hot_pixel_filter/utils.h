@@ -36,8 +36,7 @@ bool contains(T element, std::vector<T> my_vector)
 }
 
 bool parse_arguments(int argc, char* argv[],
-                     std::string* path_to_input_rosbag,
-                     int* num_hot_pixels);
+                     std::string* path_to_input_rosbag);
 
 std::string extract_bag_name(const std::string fullname);
 
