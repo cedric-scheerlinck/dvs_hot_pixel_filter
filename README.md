@@ -2,13 +2,17 @@
 
 Sometimes, you have a rosbag that contains hot pixels that fire many noise events.
 This package automatically detects hot pixels and creates a new rosbag without hot pixel events.
+It counts all events in the rosbag, then removes pixels based on either:
+
+  * Pixels that receive more than 5&sigma; (standard deviations) events, **or**
+  * Top N pixels that receive most events, where N is optional input parameter <number_of_hot_pixels>.
 
 Usage:
 
         rosrun dvs_hot_pixel_filter hot_pixel_filter path_to_input.bag <number_of_hot_pixels>
 
 The last parameter ```<number_of_hot_pixels>``` is optional.
-If no value is given, it will try to automatically detect hot pixels.
+If no value is given, it will try to automatically detect hot pixels (based on 5&sigma; event count).
 
 A new rosbag will be written, name ```input.bag.filtered```. It is an exact copy of the original bag, except hot pixel events have been removed.
 
