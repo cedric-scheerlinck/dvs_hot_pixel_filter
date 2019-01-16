@@ -1,6 +1,7 @@
 #include "dvs_hot_pixel_filter/utils.h"
 
 #include <boost/filesystem.hpp>
+#include <gflags/gflags.h>
 #include <iostream>
 
 #include <rosbag/bag.h>
@@ -8,6 +9,7 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/Imu.h>
 
+DECLARE_bool(no_stats);
 
 namespace dvs_hot_pixel_filter {
 namespace utils {
@@ -23,7 +25,8 @@ bool parse_arguments(int argc, char* argv[],
         "Usage:\n\trosrun dvs_hot_pixel_filter hot_pixel_filter path_to_bag.bag\n\n"
         "Additional (optional) command-line flags include:\n"
         "\t--n_hot_pix=<number_of_hot_pixels>\n"
-        "\t--n_std=<number_of_standard_deviations>" << std::endl;
+        "\t--n_std=<number_of_standard_deviations>\n"
+        "\t--no_stats (do not save stats on disk)"<< std::endl;
     return false;
   }
 
@@ -334,20 +337,23 @@ void save_stats(const std::string bag_name,
   std::cout << std::setprecision(4) << topic_name << "\t" << num_events_after <<
       "\t0\t\t" << percent_events_discarded << "\t(after)" << std::endl;
 
-  // save images
-  std::string dstDir = OUTPUT_FOLDER + bag_name + "/";
-  if (!one_topic)
+  if (!FLAGS_no_stats)
   {
-    dstDir += usable_filename(topic_name) + "/";
-  }
-  boost::filesystem::create_directories(dstDir); // create if needed
-  std::string fname_b = dstDir + "hist_before.png";
-  std::string fname_a = dstDir + "hist_after.png";
-  std::string fname_hp = dstDir + "hot_pixels.txt";
+    // save images
+    std::string dstDir = OUTPUT_FOLDER + bag_name + "/";
+    if (!one_topic)
+    {
+      dstDir += usable_filename(topic_name) + "/";
+    }
+    boost::filesystem::create_directories(dstDir); // create if needed
+    std::string fname_b = dstDir + "hist_before.png";
+    std::string fname_a = dstDir + "hist_after.png";
+    std::string fname_hp = dstDir + "hot_pixels.txt";
 
-  write_histogram_image(fname_b, histogram);
-  write_histogram_image(fname_a, histogram_after, hot_pixels);
-  write_hot_pixels(fname_hp, hot_pixels);
+    write_histogram_image(fname_b, histogram);
+    write_histogram_image(fname_a, histogram_after, hot_pixels);
+    write_hot_pixels(fname_hp, hot_pixels);
+  }
 }
 
 }  // namespace utils

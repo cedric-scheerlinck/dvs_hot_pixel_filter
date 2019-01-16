@@ -9,6 +9,7 @@ constexpr double NUM_STD_DEVS = 5; // default
 
 DEFINE_double(n_std, NUM_STD_DEVS, "Number of standard deviations for hot pixel threshold");
 DEFINE_int32(n_hot_pix, -1, "Number of hot pixels to be removed");
+DEFINE_bool(no_stats, false, "Do not save statistics to disk");
 
 int main(int argc, char* argv[])
 { 
