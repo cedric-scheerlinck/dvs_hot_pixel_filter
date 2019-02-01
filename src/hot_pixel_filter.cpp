@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
   {
     input_bag.open(path_to_input_rosbag, rosbag::bagmode::Read);
   }
-  catch(rosbag::BagIOException e)
+  catch(rosbag::BagIOException& e)
   {
     std::cerr << "Error: could not open rosbag: " << path_to_input_rosbag << std::endl;
     return -1;
